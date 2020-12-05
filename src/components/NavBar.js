@@ -8,7 +8,6 @@ import { faHeart, faBookOpen, faCircle } from '@fortawesome/free-solid-svg-icons
 
 // Navigation Bar at top of app on all screen view, displays basic controls for current view
 
-//  position: 'absolute', left: 15, top: 15
 const NavBar = () => {
     return (
         <View style={styles.container}>
@@ -16,25 +15,27 @@ const NavBar = () => {
             <View style={styles.statusBarContainer} />
             <View style={styles.navBarUpper}>
 
-            <View style={{ flex: 1 }} >
-                    <Text style={styles.title}>Pokédex</Text>
+                <View style={{ flex: 1 }}>
+                    <Image style={{ width: 60, height: 60, margin: 5 }} source={require('../../assets/pokedex.png')} />
                 </View>
-                
 
                 <View style={{ flexDirection: 'row' }}>
                     <FontAwesomeIcon style={styles.iconDecor} icon={faCircle} size={14} color={'#e36049'} />
                     <FontAwesomeIcon style={styles.iconDecor} icon={faCircle} size={14} color={'#e3d949'} />
                     <FontAwesomeIcon style={styles.iconDecor} icon={faCircle} size={14} color={'#6ae349'} />
                 </View>
-                
-                <View style={{ flex: 1 }}>
-                    <Image style={{ width: 40, height: 40, alignSelf: 'flex-end' }} source={require('../../assets/pokedex.png')} />
+
+                <View style={{ flex: 1 }} >
+                    <Text style={styles.pageNumber}></Text>
                 </View>
 
             </View>
             <View style={styles.navBar}>
-                <TouchableOpacity style={styles.icon}><FontAwesomeIcon icon={faHeart} color={'#fff'} /></TouchableOpacity>
-                <Text style={styles.pageNumber}>Page 1</Text>
+                <TouchableOpacity style={[styles.icon, {flexDirection: 'row'}]}>
+                    <FontAwesomeIcon icon={faHeart} color={'#fff'} />
+                    {/* <Text style={{fontWeight: 'bold', lineHeight: 19, fontSize: 18, color: '#fff'}}>'s</Text> */}
+                    </TouchableOpacity>
+                <Text style={styles.title}>Pokédex</Text>
                 <TouchableOpacity style={styles.icon}><FontAwesomeIcon icon={faBookOpen} color={'#fff'} /></TouchableOpacity>
             </View>
         </View>
@@ -59,11 +60,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         backgroundColor: "#cc0000",
         paddingHorizontal: 18,
+        maxHeight: 54,
         paddingTop: 18,
         paddingBottom: 2,
         // minHeight: 60,
         zIndex: 3,
-        alignItems: 'center'
+        alignItems: 'center',
     },
     iconDecor: {
         paddingHorizontal: Platform.OS === 'web' ? 8 : 16
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     icon: {
-        paddingHorizontal: 10
+        paddingHorizontal: 50
     }
 })
 

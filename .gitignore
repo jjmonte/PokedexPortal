@@ -7,3 +7,5 @@ node_modules/fbemitter/node_modules/core-js/fn/array/
 
 node_modules/\@expo/configure-splash-screen/node_modules/core-js/modules/
 node_modules
+
+.expo/

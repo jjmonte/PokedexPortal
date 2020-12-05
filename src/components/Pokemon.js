@@ -1,32 +1,56 @@
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faHeart } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as faHeartEmpty } from '@fortawesome/free-regular-svg-icons';
+
 import React, { useState, useEffect } from 'react';
 import { Text, FlatList, ScrollView, View, Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import { prepareGet } from '../util/api';
+// import { storeFavorites, loadFavorites} from '../util/favorites';
 
 import { NavBar } from './NavBar';
 
-const Pokemon = ({ item }) => {
+// favorites.includes(item.id) ? {backgroundColor: 'pink'} : {backgroundColor: '#D6FFFA'}
+
+
+const Pokemon = ({ item, selected }) => {
+    if (selected == item.id) {
+
+    }
     return (
-        <View style={styles.pokeContainer}>
-            <Text style={styles.pokeData}>#{item.nationalPokedexNumber}</Text>
-            <Text style={styles.pokeData}>{item.name}</Text>
-            <Text style={styles.pokeData}>HP: {item.hp}</Text>
-        </View>
+        <TouchableOpacity onPress={() => { console.log('make favorite!') }}>
+            <View style={[styles.pokeContainer]}>
+
+                <Text style={styles.pokeData}>#{item.nationalPokedexNumber}</Text>
+                <Text style={styles.pokeData}>{item.name}</Text>
+                <Text style={styles.pokeData}>HP: {item.hp}</Text>
+
+            </View>
+        </TouchableOpacity>
     )
 }
 
-const Pokedex = () => {
+const Pokedex = ({ currPage, setMaxPage, maxPage }) => {
     // State
     const [entries, setEntries] = useState([]);
+    const [err, setErr] = useState(null);
 
     // Wait until component mounts, then send GET req.
     useEffect(() => {
         const loadApi = async () => {
+            console.log(currPage);
             try {
                 let response = await fetch(
-                    prepareGet()
+                    prepareGet(currPage)
                 );
                 let json = await response.json();
-                console.log(json.cards);
+
+                // Set max page and check if error loading from API...
+                let maxPage = await response.headers.get('Total-Count') % response.headers.get('Page-Size') - 1;
+                setMaxPage(maxPage);
+                setErr(maxPage);
+
+                // Sort by Pokedex Number...
+                json.cards.sort((a, b) => (a.nationalPokedexNumber > b.nationalPokedexNumber) ? 1 : -1)
                 return setEntries(json.cards);
             } catch (error) {
                 console.error(error);
@@ -45,9 +69,17 @@ const Pokedex = () => {
             />
         )
     }
-    // If no pokémon have loaded yet
+
+    // If no pokémon have loaded yet :(
     const renderListEmpty = () => {
-        return (
+        if (err == -1) {
+            return (
+                <View style={styles.pokeContainer}>
+                    <Text style={styles.pokeData}>Error loading Pokémon!</Text>
+                </View>
+            )
+        }
+        else return (
             <View style={styles.pokeContainer}>
                 <Text style={styles.pokeData}>Loading Pokémon...</Text>
             </View>
@@ -61,8 +93,9 @@ const Pokedex = () => {
                     data={entries}
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id}
-                    extraData={entries}
+                    extraData={currPage}
                     ListEmptyComponent={renderListEmpty}
+                // ListFooterComponent={renderFooter}
                 />
             </View>
         </View>
@@ -72,30 +105,38 @@ const Pokedex = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#D6FFFA',
     },
     pokeContainer: {
         flex: 1,
         borderBottomColor: '#383838',
         borderBottomWidth: 1,
         flexDirection: 'row',
-        alignContent: 'space-between'
+        alignItems: 'center',
+        alignContent: 'space-between',
+        justifyContent: 'space-between'
     },
     listBox: {
         marginTop: Platform.OS === 'web' ? 110 : 0,
+        marginBottom: Platform.OS === 'web' ? 62 : 0,
         flexDirection: 'row',
         alignSelf: 'center',
         justifyContent: 'center',
         width: '100%',
-        backgroundColor: 'yellow',
+        backgroundColor: '#D6FFFA',
     },
     pokeData: {
         fontSize: 16,
+        fontFamily: 'Menlo',
         fontWeight: '500',
         color: 'black',
         padding: 16,
         flex: 1,
         textAlign: 'center'
     },
+    // footer: {
+
+    // }
 });
 
 export { Pokedex };
