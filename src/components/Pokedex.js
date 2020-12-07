@@ -1,77 +1,96 @@
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHeart } from '@fortawesome/free-solid-svg-icons';
-import { faHeart as faHeartEmpty } from '@fortawesome/free-regular-svg-icons';
+import { FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 
-import React, { useState, useEffect } from 'react';
-import { Text, FlatList, ScrollView, View, Platform, TouchableOpacity, StyleSheet } from 'react-native';
+import { favIncludes } from '../util/favorites';
 import { prepareGet } from '../util/api';
-// import { storeFavorites, loadFavorites} from '../util/favorites';
 
-import { NavBar } from './NavBar';
-
-// favorites.includes(item.id) ? {backgroundColor: 'pink'} : {backgroundColor: '#D6FFFA'}
-
-
-const Pokemon = ({ item, selected }) => {
-    if (selected == item.id) {
-
-    }
+/**
+ * List item component, renders as a single pokemon displaying it's: Pokedex number, name, and HP.
+ * Each item can be favorited/unfavorited with long press. Regular press loads card.
+ * 
+ * @param {Object} props item, selected?, isFav?, addFav()
+ */
+const Pokemon = ({ item, selected, isFav, addFav, openCard }) => {
     return (
-        <TouchableOpacity onPress={() => { console.log('make favorite!') }}>
-            <View style={[styles.pokeContainer]}>
-
+        <TouchableOpacity onPress={(item, isFav) => openCard(item, isFav)} onLongPress={(item) => addFav(item)}>
+            <View style={[styles.pokeContainer, isFav ? { backgroundColor: 'pink' } : { backgroundColor: '#fff' }]}>
                 <Text style={styles.pokeData}>#{item.nationalPokedexNumber}</Text>
                 <Text style={styles.pokeData}>{item.name}</Text>
                 <Text style={styles.pokeData}>HP: {item.hp}</Text>
-
             </View>
         </TouchableOpacity>
     )
 }
 
-const Pokedex = ({ currPage, setMaxPage, maxPage }) => {
+/**
+ * FlatList component, renders list of pokemon
+ * 
+ * @param {Object} props item, selected?, isFav?, addFav()
+ */
+const Pokedex = ({ showFavorites, currPage, setMaxPage, cardSetCode, favorites, addFav, openCard }) => {
     // State
     const [entries, setEntries] = useState([]);
     const [err, setErr] = useState(null);
+    const isRendered = useRef(false);
 
     // Wait until component mounts, then send GET req.
     useEffect(() => {
         const loadApi = async () => {
-            console.log(currPage);
             try {
                 let response = await fetch(
-                    prepareGet(currPage)
+                    prepareGet(currPage, null, null, cardSetCode)
                 );
                 let json = await response.json();
 
                 // Set max page and check if error loading from API...
-                let maxPage = await response.headers.get('Total-Count') % response.headers.get('Page-Size') - 1;
-                setMaxPage(maxPage);
-                setErr(maxPage);
+                if (!isRendered.current) {
+                    let maxPage = Math.ceil(response.headers.get('Total-Count') / response.headers.get('Page-Size'));
+                    setMaxPage(maxPage);
+                    setErr(maxPage);
 
-                // Sort by Pokedex Number...
-                json.cards.sort((a, b) => (a.nationalPokedexNumber > b.nationalPokedexNumber) ? 1 : -1)
-                return setEntries(json.cards);
+                    // Sort by Pokedex Number...
+                    json.cards.sort((a, b) => (a.nationalPokedexNumber > b.nationalPokedexNumber) ? 1 : -1);
+
+                    return setEntries(json.cards);
+                }
             } catch (error) {
                 console.error(error);
             }
-
         };
-        loadApi();
-    }, []);
 
-    // To render each of our friends..
+        // Show either ONLY favorites or load from api and highlight favorites
+        if (showFavorites) {
+            setEntries(favorites);
+            return () => isRendered.current = true;
+        }
+        else {
+            loadApi();
+            return () => isRendered.current = true;
+        }
+
+    }, [entries]);
+
+    // To render each pokémon
     const renderItem = ({ item }) => {
-        console.log()
         return (
             <Pokemon
                 item={item}
+                addFav={() => addFav(item)}
+                isFav={favIncludes(favorites, item.id)}
+                openCard={() => openCard(item, favIncludes(favorites, item.id))}
             />
         )
     }
 
     // If no pokémon have loaded yet :(
     const renderListEmpty = () => {
+        if (showFavorites && favorites == 0) {
+            return (
+                <View style={styles.pokeContainer}>
+                    <Text style={styles.pokeData}>You have no favorites!</Text>
+                </View>
+            )
+        }
         if (err == -1) {
             return (
                 <View style={styles.pokeContainer}>
@@ -93,9 +112,9 @@ const Pokedex = ({ currPage, setMaxPage, maxPage }) => {
                     data={entries}
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id}
-                    extraData={currPage}
+                    extraData={entries}
                     ListEmptyComponent={renderListEmpty}
-                // ListFooterComponent={renderFooter}
+
                 />
             </View>
         </View>
@@ -105,7 +124,7 @@ const Pokedex = ({ currPage, setMaxPage, maxPage }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#D6FFFA',
+        backgroundColor: '#fff',
     },
     pokeContainer: {
         flex: 1,
@@ -123,11 +142,11 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         justifyContent: 'center',
         width: '100%',
-        backgroundColor: '#D6FFFA',
+        backgroundColor: '#fff',
     },
     pokeData: {
         fontSize: 16,
-        fontFamily: 'Menlo',
+        fontFamily: 'System',
         fontWeight: '500',
         color: 'black',
         padding: 16,
