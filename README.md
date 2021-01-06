@@ -1,10 +1,10 @@
 #PokedexPortal
 
-##**Overview:** 
+**Overview:** 
 
 Browse Pokémon cards from any selected card set and 'favorite' them, saving a list of favorited cards to local storage.
 
-##**APP INSTRUCTIONS:**
+**APP INSTRUCTIONS:**
 
 Initial screen shows the list of loaded cards. Each page loads a maximum of 25 Pokémon. Tap on a Pokémon to open a picture of its card, as well as see the card's artist and card set. To exit the Card view, simply tap the 'X' icon in the top left corner. 
 
@@ -15,7 +15,7 @@ To change the card set or clear local storage, tap the Cog icon in the top right
 *EXTRA: To view the Rotom-Dex, find a Rotom and favorite it!*
 
 
-##**External Packages:**
+**External Packages:**
 
 To create this app I used a minimal amount external packages, including the deprecated packages: AsyncStorage (https://github.com/react-native-async-storage/async-storage) and
 React Native Picker (https://github.com/react-native-picker/picker).
